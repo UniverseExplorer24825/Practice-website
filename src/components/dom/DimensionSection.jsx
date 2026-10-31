@@ -1,166 +1,247 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Layers, Box, Eye, Activity } from 'lucide-react';
+import React, { useRef } from 'react';
+import { useGSAP } from '@gsap/react';
+import { gsap, ScrollTrigger } from '../../utils/gsapConfig';
 import { Badge } from '../ui/Badge';
+import { Activity, Eye, Zap, Layers } from 'lucide-react';
 import { useNexusStore } from '../../store/useNexusStore';
 
-const dimensions = [
+const dimensionData = [
   {
-    index: '01',
-    title: 'LIQUID CHROMIUM',
-    subtitle: 'Autonomous Fluid Dynamics',
+    num: '01',
+    category: 'TOPOLOGICAL FLUID',
+    headline: 'LIQUID MERCURY',
+    subtitle: 'CONTINUOUS HARMONIC SURFACE',
     description:
-      'Continuous sinusoidal noise functions warp high-reflectivity vertex buffers in real-time, delivering organic mercury deformation at a constant 60 frames per second.',
+      'Autonomous non-Euclidean vertex buffers deform in real-time on the GPU. Multi-frequency trigonometric algorithms generate organic wave displacement without latency.',
+    metrics: [
+      { label: 'METALNESS', value: '0.96' },
+      { label: 'ROUGHNESS', value: '0.06' },
+      { label: 'HARMONICS', value: '18.4 GHZ' },
+    ],
     icon: Activity,
-    tag: 'DYNAMIC VERTEX DISPLACEMENT',
     color: 'cyan',
   },
   {
-    index: '02',
-    title: 'OPTICAL TRANSMISSION',
-    subtitle: 'Dielectric Refraction & Dispersion',
+    num: '02',
+    category: 'OPTICAL DISPERSION',
+    headline: 'CRYSTALLINE REFRACTION',
+    subtitle: 'DIELECTRIC LIGHT TRANSMISSION',
     description:
-      'Dual-pass physical transmission shaders emulate frosted crystal optics, generating dynamic chromatic aberration and specular dispersion across high-contrast environments.',
+      'Simulating physical crystal optics with dynamic index of refraction (IOR 1.8). Dual-pass transmission shaders cast volumetric specular flares across the black void.',
+    metrics: [
+      { label: 'REFRACTION', value: 'IOR 1.82' },
+      { label: 'TRANSMISSION', value: '95%' },
+      { label: 'DISPERSION', value: 'SPECTRAL' },
+    ],
     icon: Eye,
-    tag: 'PHYSICAL SHADING (IOR: 1.8)',
     color: 'purple',
   },
   {
-    index: '03',
-    title: 'SYNAPSE COHERENCE',
-    subtitle: 'Synchronized DOM-to-Canvas Matrix',
+    num: '03',
+    category: 'QUANTUM HARMONIC',
+    headline: 'ZERO-POINT RESONANCE',
+    subtitle: 'COHERENT SPATIAL OSCILLATION',
     description:
-      'A decoupled architecture bridges Lenis inertia scrolling directly into GSAP ScrollTrigger timelines, feeding normalized scroll milestones into the 3D camera trajectory.',
-    icon: Layers,
-    tag: 'LENIS + GSAP TICKER BRIDGED',
+      'Unified spatial matrix coupling observer kinetic input with procedural geometry. Fluid states oscillate between metallic fluidity and wireframe particle fields.',
+    metrics: [
+      { label: 'ENTROPY', value: 'NULL' },
+      { label: 'COHERENCE', value: '99.8%' },
+      { label: 'FIELD STATE', value: 'STABLE' },
+    ],
+    icon: Zap,
     color: 'cyan',
   },
 ];
 
 export const DimensionSection = () => {
+  const containerRef = useRef(null);
+  const pinnedRef = useRef(null);
+  const panelsRef = useRef([]);
+  const progressLineRef = useRef(null);
   const setCursor = useNexusStore((s) => s.setCursor);
   const setDistortion = useNexusStore((s) => s.setDistortion);
+  const setCoreColor = useNexusStore((s) => s.setCoreColor);
+
+  useGSAP(
+    () => {
+      const panels = panelsRef.current;
+      if (!panels || panels.length === 0) return;
+
+      // Master ScrollTrigger timeline for the pinned full-screen section
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: 'top top',
+          end: 'bottom bottom',
+          pin: pinnedRef.current,
+          scrub: 1,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const p = self.progress;
+            // Update side progress line
+            if (progressLineRef.current) {
+              gsap.set(progressLineRef.current, { scaleY: p });
+            }
+            // Dynamic distortion and color shift through stages
+            if (p < 0.33) {
+              setCoreColor('#00f0ff');
+            } else if (p < 0.66) {
+              setCoreColor('#7928ca');
+            } else {
+              setCoreColor('#b800ff');
+            }
+          },
+        },
+      });
+
+      // Initially set up panels: panel 0 visible, panels 1 and 2 below with opacity 0
+      gsap.set(panels[0], { opacity: 1, y: 0 });
+      gsap.set(panels[1], { opacity: 0, y: 80 });
+      gsap.set(panels[2], { opacity: 0, y: 80 });
+
+      // Animate Transition: Panel 0 -> Panel 1
+      tl.to(panels[0], { opacity: 0, y: -60, duration: 1, ease: 'power2.inOut' }, 1)
+        .fromTo(
+          panels[1],
+          { opacity: 0, y: 80 },
+          { opacity: 1, y: 0, duration: 1, ease: 'power2.inOut' },
+          1.2
+        );
+
+      // Animate Transition: Panel 1 -> Panel 2
+      tl.to(panels[1], { opacity: 0, y: -60, duration: 1, ease: 'power2.inOut' }, 2.5)
+        .fromTo(
+          panels[2],
+          { opacity: 0, y: 80 },
+          { opacity: 1, y: 0, duration: 1, ease: 'power2.inOut' },
+          2.7
+        );
+
+      // Hold Panel 2 slightly at the end
+      tl.to({}, { duration: 0.8 });
+    },
+    { scope: containerRef }
+  );
 
   return (
-    <section id="dimension" className="relative min-h-screen py-32 px-6 max-w-7xl mx-auto z-10">
-      {/* Section Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-16 border-b border-white/5">
-        <div>
-          <Badge variant="cyan" className="mb-4">
-            PHASE 01 // ARCHITECTURAL TAXONOMY
-          </Badge>
-          <h2 className="font-display font-bold text-4xl sm:text-6xl text-white tracking-tight">
-            DIMENSIONAL <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple">
-              TOPOLOGIES
+    <div
+      ref={containerRef}
+      id="dimension"
+      className="relative w-full h-[320vh] bg-transparent"
+    >
+      {/* Pinned Full-Screen Container */}
+      <div
+        ref={pinnedRef}
+        className="w-full h-screen sticky top-0 flex flex-col justify-between pt-24 pb-12 px-6 sm:px-12 max-w-7xl mx-auto overflow-hidden pointer-events-none"
+      >
+        {/* Top Telemetry Header */}
+        <div className="w-full flex items-center justify-between border-b border-white/5 pb-4 pointer-events-auto">
+          <div className="flex items-center gap-3">
+            <Badge variant="cyan">PHASE 01 // DIMENSIONAL SHIFTS</Badge>
+            <span className="hidden md:inline font-mono text-[10px] text-chrome-dark tracking-widest">
+              PINNED SCROLL SCRUB // THREE STAGES
             </span>
-          </h2>
-        </div>
-        <p className="max-w-md font-sans text-chrome-mute text-sm leading-relaxed">
-          Traversing beyond static planar interfaces. Each dimension represents a structural layer
-          within our spatial canvas, reacting dynamically to observer proximity.
-        </p>
-      </div>
-
-      {/* Asymmetrical Grid Layout */}
-      <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Sticky Telemetry Column */}
-        <div className="lg:col-span-4 sticky top-28 space-y-6">
-          <div className="glass-panel p-6 border-l-2 border-l-neon-cyan">
-            <span className="font-mono text-[10px] tracking-ultra text-neon-cyan uppercase">
-              STATUS TELEMETRY
-            </span>
-            <div className="mt-4 space-y-3 font-mono text-xs">
-              <div className="flex justify-between">
-                <span className="text-chrome-dark">ACTIVE MESH:</span>
-                <span className="text-chrome-silver">ICOSAHEDRON-V32</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-chrome-dark">LIGHT VECTOR:</span>
-                <span className="text-neon-cyan">BLUE-VIOLET BI-POLAR</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-chrome-dark">DISPERSION:</span>
-                <span className="text-neon-purple">CHROMATIC (0.08)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-chrome-dark">SCROLL INERTIA:</span>
-                <span className="text-chrome-silver">LENIS LERP 0.08</span>
-              </div>
-            </div>
           </div>
-
-          <div className="hidden lg:block p-6 border border-white/5 bg-charcoal-900/40 font-mono text-[11px] text-chrome-dark leading-relaxed">
-            "The screen is no longer a surface of representation, but a volumetric portal into
-            generative geometry."
+          <div className="flex items-center gap-2 font-mono text-xs text-chrome-mute">
+            <Layers className="w-3.5 h-3.5 text-neon-cyan" />
+            <span>TOPOLOGY SEQUENCER</span>
           </div>
         </div>
 
-        {/* Right Staggered Content Stream */}
-        <div className="lg:col-span-8 space-y-8">
-          {dimensions.map((dim, idx) => {
-            const Icon = dim.icon;
+        {/* Center Content Zone (Left-aligned to balance right-hand 3D object) */}
+        <div className="relative my-auto w-full max-w-xl md:max-w-2xl min-h-[420px] flex items-center pointer-events-auto">
+          {dimensionData.map((data, idx) => {
+            const Icon = data.icon;
             return (
-              <motion.div
-                key={dim.index}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-100px' }}
-                transition={{ duration: 0.8, delay: idx * 0.15 }}
-                onMouseEnter={() => {
-                  setCursor('hover', dim.index);
-                  setDistortion(1.4);
-                }}
-                onMouseLeave={() => {
-                  setCursor('default');
-                  setDistortion(0.8);
-                }}
-                className="group relative glass-panel p-8 sm:p-10 transition-all duration-500 hover:border-white/20 hover:bg-charcoal-900/80 hover:translate-x-1"
+              <div
+                key={data.num}
+                ref={(el) => (panelsRef.current[idx] = el)}
+                className="absolute inset-0 flex flex-col justify-center space-y-6"
               >
-                {/* Glow Hover Line */}
-                <div
-                  className={`absolute top-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-700 ${
-                    dim.color === 'cyan' ? 'bg-neon-cyan' : 'bg-neon-purple'
-                  }`}
-                />
+                {/* Background Parallax Numeral */}
+                <span className="absolute -top-12 -left-8 font-display font-black text-8xl sm:text-9xl text-white/[0.03] select-none pointer-events-none">
+                  {data.num}
+                </span>
 
-                <div className="flex items-center justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-2xl font-bold text-white/20 group-hover:text-neon-cyan transition-colors">
-                      {dim.index}
-                    </span>
-                    <Badge variant={dim.color === 'cyan' ? 'cyan' : 'purple'}>
-                      {dim.tag}
-                    </Badge>
-                  </div>
-                  <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-chrome-mute group-hover:border-neon-cyan group-hover:text-neon-cyan transition-all">
-                    <Icon className="w-4 h-4" />
-                  </div>
+                {/* Category Pill */}
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs font-bold text-neon-cyan tracking-ultra uppercase">
+                    STAGE {data.num} // {data.category}
+                  </span>
+                  <div className="h-[1px] w-12 bg-neon-cyan/40" />
                 </div>
 
-                <h3 className="font-display font-bold text-2xl sm:text-3xl text-white group-hover:text-neon-cyan transition-colors">
-                  {dim.title}
-                </h3>
-                <h4 className="font-mono text-xs text-chrome-dark tracking-widest uppercase mt-1 mb-4">
-                  {dim.subtitle}
+                {/* Oversized Progressive Headline */}
+                <h2
+                  onMouseEnter={() => {
+                    setCursor('hover', data.num);
+                    setDistortion(1.8);
+                  }}
+                  onMouseLeave={() => {
+                    setCursor('default');
+                    setDistortion(0.8);
+                  }}
+                  className="font-display font-extrabold text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.05]"
+                >
+                  {data.headline.split(' ')[0]} <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple">
+                    {data.headline.split(' ')[1]}
+                  </span>
+                </h2>
+
+                <h4 className="font-mono text-xs text-chrome-dark tracking-widest uppercase">
+                  {data.subtitle}
                 </h4>
 
-                <p className="font-sans text-sm sm:text-base text-chrome-mute leading-relaxed font-light">
-                  {dim.description}
+                <p className="font-sans text-sm sm:text-base text-chrome-mute leading-relaxed font-light max-w-lg">
+                  {data.description}
                 </p>
 
-                <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between text-xs font-mono text-chrome-dark">
-                  <span>VECTOR: DIM-0{idx + 1}</span>
-                  <span className="group-hover:text-chrome-silver transition-colors">
-                    EXPAND METRICS &rarr;
-                  </span>
+                {/* Technical HUD Metrics Row */}
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/5 font-mono">
+                  {data.metrics.map((m) => (
+                    <div
+                      key={m.label}
+                      className="p-3 border border-white/5 bg-charcoal-900/60 backdrop-blur-md"
+                    >
+                      <span className="block text-[9px] text-chrome-dark uppercase tracking-widest">
+                        {m.label}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-chrome-silver">
+                        {m.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
+
+        {/* Bottom Pinned Footer & Progress Indicator */}
+        <div className="w-full flex items-center justify-between pt-4 border-t border-white/5 font-mono text-[11px] text-chrome-dark pointer-events-auto">
+          <div className="flex items-center gap-6">
+            <span>OBSERVER: ACTIVE</span>
+            <span className="hidden sm:inline text-white/10">|</span>
+            <span className="hidden sm:inline">GPU SHADER: DYNAMIC_VERT_DISPLACE</span>
+          </div>
+
+          {/* Interactive Phase Indicator */}
+          <div className="flex items-center gap-4">
+            <span className="text-chrome-mute uppercase tracking-widest">PHASE SEQUENCE</span>
+            <div className="flex items-center gap-2">
+              <span className="text-neon-cyan font-bold">01</span>
+              <div className="w-16 h-[2px] bg-charcoal-800 rounded-full overflow-hidden relative">
+                <div
+                  ref={progressLineRef}
+                  className="w-full h-full bg-gradient-to-r from-neon-cyan to-neon-purple origin-left scale-x-0"
+                />
+              </div>
+              <span className="text-chrome-dark">03</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
-

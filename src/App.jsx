@@ -12,16 +12,13 @@ import { HeroSection } from './components/dom/HeroSection';
 import { DimensionSection } from './components/dom/DimensionSection';
 import { JourneySection } from './components/dom/JourneySection';
 import { InteractiveSection } from './components/dom/InteractiveSection';
-import { FinalSection } from './components/dom/FinalSection';
-import { Footer } from './components/dom/Footer';
 
 export function App() {
   const setScrollProgress = useNexusStore((s) => s.setScrollProgress);
-  const setActiveSection = useNexusStore((s) => s.setActiveSection);
   const lenisRef = useRef(null);
 
   useEffect(() => {
-    // 1. Initialize Lenis Smooth Scroll Engine
+    // 1. Initialize Lenis Smooth Inertial Scroll
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -33,90 +30,68 @@ export function App() {
     lenisRef.current = lenis;
 
     // 2. Synchronize Lenis with GSAP ScrollTrigger
-    lenis.on('scroll', (e) => {
+    lenis.on('scroll', () => {
       ScrollTrigger.update();
+    });
+
+    const handleScroll = (e) => {
       const progress = e.progress !== undefined ? e.progress : e.scroll / (e.limit || 1);
       setScrollProgress(progress);
-    });
+    };
+    lenis.on('scroll', handleScroll);
 
-    const updateLenis = (time) => {
+    // Drive Lenis from GSAP's central RAF ticker
+    const updateTicker = (time) => {
       lenis.raf(time * 1000);
     };
-
-    gsap.ticker.add(updateLenis);
+    gsap.ticker.add(updateTicker);
     gsap.ticker.lagSmoothing(0);
 
-    // 3. Register ScrollTrigger markers for Section Activation
-    const sections = [
-      { id: 'hero', name: 'hero' },
-      { id: 'dimension', name: 'dimension' },
-      { id: 'journey', name: 'journey' },
-      { id: 'interactive', name: 'interactive' },
-      { id: 'final', name: 'final' },
-    ];
-
-    sections.forEach(({ id, name }) => {
-      const el = document.getElementById(id);
-      if (el) {
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top center',
-          end: 'bottom center',
-          onEnter: () => setActiveSection(name),
-          onEnterBack: () => setActiveSection(name),
-        });
-      }
-    });
+    // Initial recalculation after layout settles
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500);
 
     return () => {
-      gsap.ticker.remove(updateLenis);
+      clearTimeout(timer);
+      gsap.ticker.remove(updateTicker);
       lenis.destroy();
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [setScrollProgress, setActiveSection]);
+  }, [setScrollProgress]);
 
   return (
-    <div className="relative min-h-screen bg-void text-chrome-silver selection:bg-neon-cyan/20 selection:text-neon-cyan">
-      {/* 1. Global Custom Cursor */}
+    <div className="relative min-h-screen bg-void text-chrome-silver selection:bg-neon-cyan/20 selection:text-neon-cyan overflow-x-hidden">
+      {/* 1. Global Custom Cursor with Morphing Ring */}
       <CustomCursor />
 
-      {/* 2. Loading Screen */}
+      {/* 2. Cybernetic Preloader */}
       <LoadingScreen />
 
-      {/* 3. Global HUD Navbar */}
+      {/* 3. Minimal Top Navigation */}
       <Navbar />
 
-      {/* 4. Fixed 3D Scene Layer (Decoupled from DOM) */}
+      {/* 4. Decoupled 3D Scene Layer */}
       <ThreeDScene />
 
-      {/* 5. DOM Overlay Content Sections */}
+      {/* 5. DOM Content Sections */}
       <main className="relative z-10 w-full overflow-hidden">
+        {/* Section 0: Hero Section */}
         <div id="hero">
           <HeroSection />
         </div>
 
-        <div id="dimension">
-          <DimensionSection />
-        </div>
+        {/* Section 1: Dimension Section (Pinned Full-Screen Scrub) */}
+        <DimensionSection />
 
-        <div id="journey">
-          <JourneySection />
-        </div>
+        {/* Section 2: Journey Section (Horizontal Storytelling Track) */}
+        <JourneySection />
 
-        <div id="interactive">
-          <InteractiveSection />
-        </div>
-
-        <div id="final">
-          <FinalSection />
-        </div>
+        {/* Section 3: Interactive Section (3D Spotlight Cards & Magnetic Controls) */}
+        <InteractiveSection />
       </main>
-
-      {/* 6. Technical Terminal Footer */}
-      <Footer />
     </div>
   );
 }
 
 export default App;
-

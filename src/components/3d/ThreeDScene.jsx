@@ -1,53 +1,53 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Stars, Float } from '@react-three/drei';
+import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { SceneLights } from './SceneLights';
-import { LiquidCore } from './LiquidCore';
-import { ChromeArtifacts } from './ChromeArtifacts';
-import { CameraRig } from './CameraRig';
+import { HeroLiquidSphere } from './HeroLiquidSphere';
 
 export const ThreeDScene = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden bg-void">
       <Canvas
-        camera={{ position: [0, 0, 6.2], fov: 45, near: 0.1, far: 100 }}
-        dpr={[1, 1.5]}
+        camera={{ position: [0, 0, 5.8], fov: 45, near: 0.1, far: 100 }}
+        dpr={isMobile ? [1, 1.2] : [1, 1.5]}
         gl={{
           antialias: true,
           powerPreference: 'high-performance',
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.1,
+          toneMappingExposure: 1.15,
         }}
       >
         <Suspense fallback={null}>
           {/* Subtle cosmic background dust */}
           <Stars
-            radius={50}
-            depth={40}
-            count={1200}
+            radius={45}
+            depth={35}
+            count={isMobile ? 500 : 1200}
             factor={3}
             saturation={0}
             fade
-            speed={0.8}
+            speed={0.6}
           />
 
-          {/* Dynamic Cybernetic Lighting Setup */}
+          {/* Dramatic Bi-Polar Lighting */}
           <SceneLights />
 
-          {/* Camera Controller synchronized with scroll & mouse */}
-          <CameraRig />
-
-          {/* Floating Chrome & Glass Orbiting Artifacts */}
-          <ChromeArtifacts />
-
-          {/* Floating Organic Liquid-Metal Core */}
-          <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.4}>
-            <LiquidCore />
-          </Float>
+          {/* Interactive Chrome Liquid-Metal Core */}
+          <HeroLiquidSphere isMobile={isMobile} />
         </Suspense>
       </Canvas>
     </div>
   );
 };
-
